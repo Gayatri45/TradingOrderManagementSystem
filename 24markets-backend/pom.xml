@@ -22,8 +22,22 @@
 
     <properties>
         <java.version>17</java.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <!-- ✅ Testcontainers BOM -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -78,13 +92,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -117,6 +124,42 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency> -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+         <!-- ================= TEST ================= -->
+
+        <!-- Spring Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
+    
+        <!-- Redis Testcontainer -->
+        <!-- <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>redis</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency> -->
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

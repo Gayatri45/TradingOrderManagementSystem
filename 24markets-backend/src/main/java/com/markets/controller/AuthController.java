@@ -44,7 +44,7 @@ public class AuthController {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             // user.setFullName(request.getEmail().split("@")[0]); // Default name
             user.setFullName(request.getFirstName()+" "+request.getLastName()); // Default name
-            user.setWalletBalance(1000.0);
+            user.setWalletBalance(100000.0);
             user.setStatus("ACTIVE");
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());

@@ -580,29 +580,6 @@ export const Dashboard = () => {
             <div className="db-logo-mark">T</div>
             <div className="db-logo-text">Trade<span>Hub</span></div>
           </div>
-
-          {/* <nav className="db-nav">
-            <div className="db-nav-label">Main</div>
-            {[
-              { icon: <Icon.Dashboard />, label: 'Overview',  active: true, link: '/dashboard' },
-              { icon: <Icon.Orders />,   label: 'Orders',    badge: orders.length, link: '/orders' },
-              { icon: <Icon.Chart />,    label: 'Analytics' , link: '/dashboard' },
-              { icon: <Icon.Wallet />,   label: 'Wallet', link: '/dashboard' },
-            ].map(item => (
-              <Link to={item.link}><button key={item.label} className={`db-nav-item${item.active ? ' active' : ''}`}>
-                <span className="db-nav-icon">{item.icon}</span>
-                {item.label}
-                {item.badge > 0 && <span className="db-nav-badge">{item.badge} </span>}
-              </button></Link>
-            ))}
-
-            <div className="db-nav-label" style={{ marginTop: 20 }}>Account</div>
-            <button className="db-nav-item">
-              <span className="db-nav-icon"><Icon.Settings /></span>
-              Settings
-            </button>
-          </nav> */}
-
           <nav className="db-nav">
             <div className="db-nav-label">Main</div>
 
@@ -638,17 +615,6 @@ export const Dashboard = () => {
               Settings
             </NavLink>
           </nav>
-
-          {/* <div className="db-sb-footer">
-            <div className="db-sb-user">
-              <div className="db-sb-avatar">{initials}</div>
-              <div style={{ overflow: 'hidden', flex: 1 }}>
-                <div className="db-sb-name">{user.fullName}</div>
-                <div className="db-sb-role">Member</div>
-              </div>
-              <div className="db-sb-logout"><Icon.Logout /></div>
-            </div>
-          </div> */}
           <div className="db-sb-footer">
             <div className="db-sb-user">
               <div className="db-sb-avatar">{initials}</div>
@@ -689,12 +655,12 @@ export const Dashboard = () => {
             </div>
 
             <div className="db-tb-actions">
-              <button className="db-icon-btn">
+              {/* <button className="db-icon-btn">
                 <Icon.Bell />
                 <span className="db-notif-dot" />
-              </button>
-              <button className="db-icon-btn"><Icon.Settings /></button>
-              <div className="db-tb-div" />
+              </button> */}
+              {/* <button className="db-icon-btn"><Icon.Settings /></button> */}
+              {/* <div className="db-tb-div" /> */}
               <div className="db-tb-avatar">{initials}</div>
             </div>
           </header>

@@ -16,9 +16,12 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping
+    @PostMapping("/createOrder")
     public ResponseEntity<Order> createOrder(@RequestBody Order order,
                                             @RequestAttribute("userId") Long authenticatedUserId) {
+
+        System.out.println("Authenticated userId: " + authenticatedUserId);
+        System.out.println("Order userId: " + order.getUser().getId());
         // Ensure user can only create orders for themselves
         if (!order.getUser().getId().equals(authenticatedUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
