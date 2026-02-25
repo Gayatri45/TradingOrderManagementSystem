@@ -45,6 +45,8 @@ import { Dashboard } from './pages/Dashboard';
 import './App.css';
 import { OrderForm } from './components/OrderForm';
 import OrdersPage from './pages/Orders';
+import Users from './pages/Users';
+import UsersOrdersPage from './pages/UsersOrders';
 
 function App() {
   return (
@@ -58,6 +60,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/markets" element={<Markets />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/usersOrders" element={<UsersOrdersPage />} />
+        <Route path="/users" element={<Users />} />
         <Route path="/createOrder" element={<OrderForm />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

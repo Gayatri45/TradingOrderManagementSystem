@@ -518,6 +518,7 @@ export const MarketList = () => {
       setLoading(true);
       setSpinning(true);
       const response = await marketAPI.getMarkets();
+      // console.log(response.data)
       setMarkets(response.data);
     } catch (err) {
       setError(err.message);
@@ -603,9 +604,9 @@ export const MarketList = () => {
             <button className={`ml-refresh-btn${spinning ? ' spinning' : ''}`} onClick={fetchMarkets}>
               <Icon.Refresh /> Refresh
             </button>
-            <button className="ml-create-btn" onClick={() => openOrderModal()}>
+            {/* <button className="ml-create-btn" onClick={() => openOrderModal()}>
               <Icon.Plus /> Create Order
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -630,7 +631,7 @@ export const MarketList = () => {
         <div className="ml-card">
 
           {/* Error state */}
-          {error ? (
+          {error && error != "Admin only" ? (
             <div className="ml-error">
               <div className="ml-error-icon"><Icon.Alert /></div>
               <div className="ml-error-title">Failed to load markets</div>

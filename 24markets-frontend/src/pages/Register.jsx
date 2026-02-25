@@ -50,7 +50,6 @@ const styles = `
     pointer-events: none;
   }
 
-  /* Grid overlay */
   .left-grid {
     position: absolute;
     inset: 0;
@@ -216,6 +215,17 @@ const styles = `
   }
   .error-box::before { content: '⚠'; font-size: 14px; flex-shrink: 0; }
 
+  /* Field errors */
+  .field-error {
+    font-size: 11.5px;
+    color: #ff7090;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .field-error::before { content: '✕'; font-size: 10px; }
+
   /* Name row */
   .form-row {
     display: grid;
@@ -240,8 +250,18 @@ const styles = `
     text-transform: uppercase;
     color: #4a5168;
   }
+  .field label .optional-tag {
+    font-size: 10px;
+    letter-spacing: .04em;
+    color: #2d3347;
+    text-transform: none;
+    font-weight: 400;
+    margin-left: 6px;
+  }
 
-  .field input {
+  .field input[type="text"],
+  .field input[type="email"],
+  .field input[type="password"] {
     width: 100%;
     padding: 13px 16px;
     border-radius: 10px;
@@ -253,7 +273,12 @@ const styles = `
     font-weight: 400;
     outline: none;
     transition: border-color .2s, box-shadow .2s, background .2s;
-    -webkit-autofill: none;
+  }
+  .field input[type="text"].has-error,
+  .field input[type="email"].has-error,
+  .field input[type="password"].has-error {
+    border-color: rgba(255,77,109,.4);
+    box-shadow: 0 0 0 3px rgba(255,77,109,.06);
   }
   .field input::placeholder { color: #2d3347; }
   .field input:focus {
@@ -295,6 +320,99 @@ const styles = `
     height: 1px;
     background: rgba(255,255,255,.05);
     margin: 24px 0;
+  }
+
+  /* isAdmin toggle */
+  .admin-toggle-field {
+    margin-bottom: 20px;
+  }
+  .admin-toggle-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #4a5168;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .admin-toggle-label .optional-tag {
+    font-size: 10px;
+    letter-spacing: .04em;
+    color: #2d3347;
+    text-transform: none;
+    font-weight: 400;
+  }
+  .admin-toggle-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #0b0f1e;
+    border: 1px solid rgba(255,255,255,.07);
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    user-select: none;
+  }
+  .admin-toggle-card:hover:not(.disabled) {
+    border-color: rgba(0,229,160,.25);
+    background: #0d1120;
+  }
+  .admin-toggle-card.active {
+    border-color: rgba(0,229,160,.35);
+    background: rgba(0,229,160,.04);
+  }
+  .admin-toggle-card.disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+  .admin-toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .admin-toggle-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e8eaf0;
+  }
+  .admin-toggle-desc {
+    font-size: 12px;
+    color: #3a4155;
+    font-weight: 300;
+  }
+  /* Toggle switch */
+  .toggle-switch {
+    width: 40px;
+    height: 22px;
+    border-radius: 100px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.1);
+    position: relative;
+    transition: background .25s, border-color .25s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on {
+    background: #00e5a0;
+    border-color: #00e5a0;
+    box-shadow: 0 0 16px rgba(0,229,160,.35);
+  }
+  .toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform .25s cubic-bezier(.4,0,.2,1), background .25s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  }
+  .toggle-switch.on .toggle-knob {
+    transform: translateX(18px);
+    background: #04060f;
   }
 
   /* Terms */
@@ -392,6 +510,49 @@ const getStrength = (pw) => {
   return { score, label: labels[Math.min(score, 3)], segs };
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_REGEX  = /^[A-Za-z\s'-]{1,50}$/;
+
+const validate = (formData, agreed) => {
+  const errs = {};
+
+  if (!formData.firstName.trim()) {
+    errs.firstName = 'First name is required';
+  } else if (!NAME_REGEX.test(formData.firstName.trim())) {
+    errs.firstName = 'Only letters, spaces, hyphens, and apostrophes allowed';
+  }
+
+  if (!formData.lastName.trim()) {
+    errs.lastName = 'Last name is required';
+  } else if (!NAME_REGEX.test(formData.lastName.trim())) {
+    errs.lastName = 'Only letters, spaces, hyphens, and apostrophes allowed';
+  }
+
+  if (!formData.email.trim()) {
+    errs.email = 'Email address is required';
+  } else if (!EMAIL_REGEX.test(formData.email.trim())) {
+    errs.email = 'Enter a valid email address';
+  }
+
+  if (!formData.password) {
+    errs.password = 'Password is required';
+  } else if (formData.password.length < 6) {
+    errs.password = 'Password must be at least 6 characters';
+  }
+
+  if (!formData.confirmPassword) {
+    errs.confirmPassword = 'Please confirm your password';
+  } else if (formData.password !== formData.confirmPassword) {
+    errs.confirmPassword = 'Passwords do not match';
+  }
+
+  if (!agreed) {
+    errs.terms = 'You must accept the Terms of Service to continue';
+  }
+
+  return errs;
+};
+
 export const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -399,9 +560,11 @@ export const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    isAdmin: false,
   });
-  const [agreed, setAgreed] = useState(false);
-  const [error, setError] = useState('');
+  const [agreed, setAgreed]   = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
   const { setUser, setLoading: setAppLoading } = useAppContext();
   const navigate = useNavigate();
@@ -411,34 +574,45 @@ export const Register = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear field-level error on change
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
     setError('');
+  };
+
+  const handleToggleAdmin = () => {
+    if (loading) return;
+    setFormData((prev) => ({ ...prev, isAdmin: !prev.isAdmin }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!agreed) { setError('Please accept the Terms of Service to continue'); return; }
-    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return; }
-    if (formData.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    const errs = validate(formData, agreed);
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      if (errs.terms) setError(errs.terms);
+      return;
+    }
 
     setLoading(true);
     setAppLoading(true);
-    console.log(formData)
-
+    // console.log(formData)
     try {
       const response = await authAPI.register({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
+        firstName: formData.firstName.trim(),
+        lastName:  formData.lastName.trim(),
+        email:     formData.email.trim(),
+        password:  formData.password,
+        isAdmin:   formData.isAdmin,
       });
-
+    // console.log(response.data)
       if (response.data) {
         setUser({
-          id: response.data.userId,
-          email: response.data.email,
-          fullName: response.data.fullName,
+          id:            response.data.userId,
+          email:         response.data.email,
+          fullName:      response.data.fullName,
           walletBalance: response.data.walletBalance,
+          isAdmin:       response.data.isAdmin,
         });
         navigate('/dashboard');
       }
@@ -497,7 +671,8 @@ export const Register = () => {
 
             {error && <div className="error-box">{error}</div>}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
+
               {/* Name row */}
               <div className="form-row">
                 <div className="field">
@@ -508,9 +683,12 @@ export const Register = () => {
                     placeholder="Jane"
                     value={formData.firstName}
                     onChange={handleChange}
-                    required
                     disabled={loading}
+                    className={fieldErrors.firstName ? 'has-error' : ''}
                   />
+                  {fieldErrors.firstName && (
+                    <span className="field-error">{fieldErrors.firstName}</span>
+                  )}
                 </div>
                 <div className="field">
                   <label>Last Name</label>
@@ -520,9 +698,12 @@ export const Register = () => {
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={handleChange}
-                    required
                     disabled={loading}
+                    className={fieldErrors.lastName ? 'has-error' : ''}
                   />
+                  {fieldErrors.lastName && (
+                    <span className="field-error">{fieldErrors.lastName}</span>
+                  )}
                 </div>
               </div>
 
@@ -534,9 +715,12 @@ export const Register = () => {
                   placeholder="jane@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                   disabled={loading}
+                  className={fieldErrors.email ? 'has-error' : ''}
                 />
+                {fieldErrors.email && (
+                  <span className="field-error">{fieldErrors.email}</span>
+                )}
               </div>
 
               <div className="field">
@@ -547,8 +731,8 @@ export const Register = () => {
                   placeholder="Min. 6 characters"
                   value={formData.password}
                   onChange={handleChange}
-                  required
                   disabled={loading}
+                  className={fieldErrors.password ? 'has-error' : ''}
                 />
                 <div className="strength-bar">
                   {strength.segs.map((cls, i) => (
@@ -557,6 +741,9 @@ export const Register = () => {
                 </div>
                 {formData.password && (
                   <div className="strength-label">{strength.label} password</div>
+                )}
+                {fieldErrors.password && (
+                  <span className="field-error">{fieldErrors.password}</span>
                 )}
               </div>
 
@@ -568,9 +755,40 @@ export const Register = () => {
                   placeholder="Re-enter password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  required
                   disabled={loading}
+                  className={fieldErrors.confirmPassword ? 'has-error' : ''}
                 />
+                {fieldErrors.confirmPassword && (
+                  <span className="field-error">{fieldErrors.confirmPassword}</span>
+                )}
+              </div>
+
+              {/* isAdmin toggle */}
+              <div className="admin-toggle-field">
+                <div className="admin-toggle-label">
+                  Account Type
+                  <span className="optional-tag">optional</span>
+                </div>
+                <div
+                  className={`admin-toggle-card${formData.isAdmin ? ' active' : ''}${loading ? ' disabled' : ''}`}
+                  onClick={handleToggleAdmin}
+                  role="switch"
+                  aria-checked={formData.isAdmin}
+                  tabIndex={loading ? -1 : 0}
+                  onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') handleToggleAdmin(); }}
+                >
+                  <div className="admin-toggle-info">
+                    <span className="admin-toggle-title">Administrator Access</span>
+                    <span className="admin-toggle-desc">
+                      {formData.isAdmin
+                        ? 'This account will have admin privileges'
+                        : 'Standard trader account (default)'}
+                    </span>
+                  </div>
+                  <div className={`toggle-switch${formData.isAdmin ? ' on' : ''}`}>
+                    <div className="toggle-knob" />
+                  </div>
+                </div>
               </div>
 
               <div className="form-divider" />
@@ -580,7 +798,11 @@ export const Register = () => {
                   type="checkbox"
                   id="agree"
                   checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
+                  onChange={(e) => {
+                    setAgreed(e.target.checked);
+                    setFieldErrors((prev) => ({ ...prev, terms: undefined }));
+                    setError('');
+                  }}
                   disabled={loading}
                 />
                 <label htmlFor="agree">
@@ -588,7 +810,7 @@ export const Register = () => {
                 </label>
               </div>
 
-              <button type="submit" className="btn-submit" disabled={loading || !agreed}>
+              <button type="submit" className="btn-submit" disabled={loading}>
                 {loading ? (
                   <><div className="spinner" /> Creating account…</>
                 ) : (

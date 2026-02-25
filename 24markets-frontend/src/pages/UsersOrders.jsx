@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 
 // ─── API ──────────────────────────────────────────────────────────────────────
-import { marketAPI, orderAPI } from '../services/api';
+import {orderAPI } from '../services/api';
 import { useAppContext } from '../hooks/useAppContext';
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -213,8 +213,8 @@ const CSS = `
   }
   @keyframes op-fi { from{opacity:0} to{opacity:1} }
   .op-modal {
-    background:#fff; border-radius:16px; width:100%; max-width:500px;
-    box-shadow:0 20px 60px rgba(0,0,0,.15); overflow:hidden;
+    background:#fff; border-radius:16px; width:100%; max-width:620px;
+    box-shadow:0 20px 60px rgba(0,0,0,.15); overflow:hidden; max-height:90vh;
     animation:op-su .25s ease;
   }
   @keyframes op-su {
@@ -236,7 +236,7 @@ const CSS = `
     font-size:17px; line-height:1; transition:all .15s;
   }
   .op-mclose:hover { background:#f8fafc; color:#0f172a; border-color:#cbd5e1; }
-  .op-mbody { padding:22px; }
+  .op-mbody { padding:22px; overflow-y:auto; max-height:calc(90vh - 70px); }
   .op-mload { display:flex; flex-direction:column; align-items:center; gap:12px; padding:40px 20px; }
 
   .op-hero {
@@ -347,6 +347,105 @@ const CSS = `
   .co-submit-btn.SELL:hover { background:#be123c; }
   .co-submit-btn:disabled { opacity:.45; cursor:not-allowed; }
   .co-form-err { font-size:12px; color:#e11d48; padding:0 2px; }
+
+  /* User cell in table */
+  .op-ucell { display:flex; align-items:center; gap:9px; }
+  .op-uavatar {
+    width:30px; height:30px; border-radius:50%; background:#e0e7ff; color:#4338ca;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0; text-transform:uppercase;
+  }
+  .op-uname { font-weight:600; font-size:13px; color:#0f172a; }
+  .op-uemail { color:#94a3b8; font-size:11px; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+
+  /* Detail grid - side by side cards */
+  .op-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; }
+  .op-detail-card {
+    background:#f8fafc; border:1px solid #f1f5f9; border-radius:12px;
+    overflow:hidden; transition:border-color .15s;
+  }
+  .op-detail-card:hover { border-color:#e2e8f0; }
+  .op-detail-card-hdr {
+    display:flex; align-items:center; gap:10px;
+    padding:14px 14px 10px; border-bottom:1px solid #f1f5f9;
+  }
+  .op-detail-card-label {
+    font-size:10px; font-weight:600; color:#94a3b8; text-transform:uppercase;
+    letter-spacing:.07em; line-height:1;
+  }
+  .op-detail-card-title { font-size:14px; font-weight:700; color:#0f172a; margin-top:2px; }
+  .op-detail-card-body { padding:10px 14px 14px; }
+
+  .op-user-avatar-lg {
+    width:36px; height:36px; border-radius:50%; background:#e0e7ff; color:#4338ca;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; flex-shrink:0; text-transform:uppercase;
+  }
+  .op-market-chip-lg {
+    padding:7px 10px; border-radius:8px; font-size:14px; font-weight:800;
+    border:1px solid transparent; flex-shrink:0;
+  }
+
+  /* Info rows inside detail cards */
+  .op-info-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 0; font-size:12px;
+  }
+  .op-info-row + .op-info-row { border-top:1px solid #f1f5f9; }
+  .op-info-label { color:#94a3b8; font-weight:500; }
+  .op-info-value {
+    color:#0f172a; font-weight:600; text-align:right;
+    max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .op-info-badge {
+    display:inline-block; padding:2px 8px; border-radius:10px;
+    font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .op-info-badge.active { background:#f0fdf4; color:#16a34a; }
+  .op-info-badge.inactive { background:#fff1f2; color:#e11d48; }
+  .op-info-badge.admin { background:#eff6ff; color:#2563eb; }
+
+  /* Market price range bar */
+  .op-mkt-range {
+    display:flex; align-items:center; gap:8px; padding:8px 0;
+    border-top:1px solid #f1f5f9;
+  }
+  .op-mkt-range-item { text-align:center; flex-shrink:0; }
+  .op-mkt-range-item.low { }
+  .op-mkt-range-item.high { }
+  .op-mkt-range-label {
+    font-size:9px; font-weight:600; color:#94a3b8; text-transform:uppercase;
+    letter-spacing:.05em; display:block;
+  }
+  .op-mkt-range-val { font-size:11px; font-weight:700; }
+  .op-mkt-range-item.low .op-mkt-range-val { color:#e11d48; }
+  .op-mkt-range-item.high .op-mkt-range-val { color:#16a34a; }
+  .op-mkt-range-bar {
+    flex:1; height:5px; background:#e2e8f0; border-radius:3px; position:relative; overflow:hidden;
+  }
+  .op-mkt-range-fill {
+    position:absolute; top:0; left:0; height:100%; border-radius:3px;
+    background:linear-gradient(90deg, #e11d48, #d97706, #16a34a);
+  }
+
+  /* Section title for order details */
+  .op-section-title {
+    font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;
+    letter-spacing:.08em; margin-bottom:10px; margin-top:4px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .op-section-icon { font-size:14px; }
+
+  /* Status Update Section */
+  .op-status-update { margin-bottom:18px; padding:14px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; display:flex; gap:10px; align-items:center; }
+  .op-status-label { font-size:11px; font-weight:600; color:#d97706; text-transform:uppercase; letter-spacing:.06em; min-width:100px; }
+  .op-status-actions { display:flex; gap:8px; flex:1; }
+  .op-status-btn { padding:6px 12px; border-radius:6px; border:none; color:#fff; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .op-status-btn:disabled { opacity:.6; cursor:not-allowed; }
+  .op-status-btn.complete { background:#16a34a; }
+  .op-status-btn.complete:hover:not(:disabled) { background:#15803d; }
+  .op-status-btn.cancel { background:#e11d48; }
+  .op-status-btn.cancel:hover:not(:disabled) { background:#be123c; }
 `
 
 function useStyles() {
@@ -387,6 +486,8 @@ function OrderModal({ orderId, onClose }) {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [updating, setUpdating] = useState(false)
+  const [statusError, setStatusError] = useState(null)
 
   useEffect(() => {
     setLoading(true); setError(null); setOrder(null)
@@ -402,9 +503,24 @@ function OrderModal({ orderId, onClose }) {
     return () => window.removeEventListener('keydown', h)
   }, [onClose])
 
+  const handleStatusChange = async (newStatus) => {
+    if (newStatus === order.status) return
+    setUpdating(true)
+    setStatusError(null)
+    try {
+      const res = await orderAPI.updateOrderStatus(orderId, newStatus)
+      setOrder(res.data)
+    } catch (err) {
+      setStatusError(err.message || 'Failed to update status. Please try again.')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const color = order ? mc(order.market.symbol) : null
   const created = order ? fmtDate(order.createdAt) : null
   const updated = order ? fmtDate(order.updatedAt) : null
+  const canChangeStatus = order && order.status === 'PENDING'
 
   return (
     <div className="op-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -425,8 +541,31 @@ function OrderModal({ orderId, onClose }) {
             </div>
           )}
           {error && <div className="op-err">⚠ {error}</div>}
+          {statusError && <div className="op-err">⚠ {statusError}</div>}
           {!loading && !error && order && (
             <>
+              {canChangeStatus && (
+                <div className="op-status-update">
+                  <span className="op-status-label">Change Status</span>
+                  <div className="op-status-actions">
+                    <button
+                      onClick={() => handleStatusChange('COMPLETED')}
+                      disabled={updating}
+                      className="op-status-btn complete"
+                    >
+                      ✓ Complete
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange('CANCELLED')}
+                      disabled={updating}
+                      className="op-status-btn cancel"
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              {/* ── Order Info Hero ── */}
               <div className="op-hero">
                 <div className="op-hmarket">
                   <div className="op-hchip" style={{ background: color.bg, color: color.text, borderColor: color.border }}>
@@ -443,6 +582,106 @@ function OrderModal({ orderId, onClose }) {
                 </div>
               </div>
 
+              {/* ── User & Market side-by-side cards ── */}
+              <div className="op-detail-grid">
+                {/* User Details */}
+                {order.user && (
+                  <div className="op-detail-card">
+                    <div className="op-detail-card-hdr">
+                      <div className="op-user-avatar-lg">
+                        {(order.user.fullName || '?').charAt(0)}
+                      </div>
+                      <div>
+                        <div className="op-detail-card-label">User</div>
+                        <div className="op-detail-card-title">{order.user.fullName || `User #${order.user.id}`}</div>
+                      </div>
+                    </div>
+                    <div className="op-detail-card-body">
+                      <div className="op-info-row">
+                        <span className="op-info-label">ID</span>
+                        <span className="op-info-value">#{order.user.id}</span>
+                      </div>
+                      <div className="op-info-row">
+                        <span className="op-info-label">Email</span>
+                        <span className="op-info-value">{order.user.email || '—'}</span>
+                      </div>
+                      <div className="op-info-row">
+                        <span className="op-info-label">Wallet</span>
+                        <span className="op-info-value" style={{ color: '#16a34a' }}>{fmt(order.user.walletBalance)}</span>
+                      </div>
+                      <div className="op-info-row">
+                        <span className="op-info-label">Status</span>
+                        <span className={`op-info-badge ${(order.user.status || 'ACTIVE').toLowerCase()}`}>{order.user.status || 'ACTIVE'}</span>
+                      </div>
+                      {order.user.role && (
+                        <div className="op-info-row">
+                          <span className="op-info-label">Role</span>
+                          <span className="op-info-value">{order.user.role}</span>
+                        </div>
+                      )}
+                      {order.user.isAdmin && (
+                        <div className="op-info-row">
+                          <span className="op-info-label">Admin</span>
+                          <span className="op-info-badge admin">Admin</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Market Details */}
+                {order.market && (
+                  <div className="op-detail-card">
+                    <div className="op-detail-card-hdr">
+                      <div className="op-market-chip-lg" style={{ background: color.bg, color: color.text, borderColor: color.border }}>
+                        {order.market.symbol}
+                      </div>
+                      <div>
+                        <div className="op-detail-card-label">Market</div>
+                        <div className="op-detail-card-title">{order.market.name}</div>
+                      </div>
+                    </div>
+                    <div className="op-detail-card-body">
+                      <div className="op-info-row">
+                        <span className="op-info-label">ID</span>
+                        <span className="op-info-value">#{order.market.id}</span>
+                      </div>
+                      <div className="op-info-row">
+                        <span className="op-info-label">Current Price</span>
+                        <span className="op-info-value" style={{ color: '#16a34a', fontWeight: 700 }}>{fmt(order.market.currentPrice)}</span>
+                      </div>
+                      <div className="op-info-row">
+                        <span className="op-info-label">Open</span>
+                        <span className="op-info-value">{fmt(order.market.openPrice)}</span>
+                      </div>
+                      <div className="op-mkt-range">
+                        <div className="op-mkt-range-item low">
+                          <span className="op-mkt-range-label">Low</span>
+                          <span className="op-mkt-range-val">{fmt(order.market.lowPrice)}</span>
+                        </div>
+                        <div className="op-mkt-range-bar">
+                          <div className="op-mkt-range-fill" style={{
+                            width: `${Math.min(100, Math.max(5, ((order.market.currentPrice - order.market.lowPrice) / (order.market.highPrice - order.market.lowPrice)) * 100))}%`
+                          }} />
+                        </div>
+                        <div className="op-mkt-range-item high">
+                          <span className="op-mkt-range-label">High</span>
+                          <span className="op-mkt-range-val">{fmt(order.market.highPrice)}</span>
+                        </div>
+                      </div>
+                      <div className="op-info-row">
+                        <span className="op-info-label">Volume</span>
+                        <span className="op-info-value">{Number(order.market.volume).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Order Details ── */}
+              <div className="op-section-title">
+                <span className="op-section-icon">&#x1F4CB;</span> Order Details
+              </div>
               <div className="op-dgrid">
                 <div className="op-ditem">
                   <div className="op-dkey">Quantity</div>
@@ -486,189 +725,11 @@ function OrderModal({ orderId, onClose }) {
   )
 }
 
-// ─── Create Order Modal ───────────────────────────────────────────────────────
-const DEFAULT_FORM = { orderType: 'BUY', marketId: '', quantity: '', pricePerUnit: '' }
-
-function CreateOrderModal({ markets = [], user, onClose, onSuccess }) {
-  const [form, setForm] = useState(() => {
-    const first = markets[0]
-    return {
-      ...DEFAULT_FORM,
-      marketId: first ? String(first.id) : '',
-      pricePerUnit: first ? first.currentPrice.toFixed(2) : '',
-    }
-  })
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-
-  const selectedMarket = markets.find((m) => String(m.id) === String(form.marketId))
-  const totalAmount = parseFloat(form.quantity || 0) * parseFloat(form.pricePerUnit || 0)
-
-  useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [onClose])
-
-  const handleSubmit = async () => {
-    if (!user) { setError('Please login to place an order'); return }
-    setSubmitting(true); setError(null)
-    try {
-      const orderData = {
-        user: { id: user.id },
-        market: { id: form.marketId },
-        quantity: parseFloat(form.quantity),
-        pricePerUnit: parseFloat(form.pricePerUnit),
-        orderType: form.orderType,
-      }
-      console.log(orderData)
-      await orderAPI.createOrder(orderData)
-      onSuccess?.()
-      onClose()
-    } catch (err) {
-      setError(err.message || 'Failed to place order. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const canSubmit = form.quantity && form.pricePerUnit && parseFloat(form.quantity) > 0 && !submitting
-
-  return (
-    <div className="co-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="co-modal">
-        {/* Header */}
-        <div className="co-hdr">
-          <div>
-            <div className="co-title">Create Order</div>
-            <div className="co-sub">
-              {selectedMarket
-                ? `${selectedMarket.symbol} · $${selectedMarket.currentPrice.toFixed(2)}`
-                : 'Place a new market order'}
-            </div>
-          </div>
-          <button className="co-close" onClick={onClose}>×</button>
-        </div>
-
-        {/* Body */}
-        <div className="co-body">
-          {error && <div className="op-err" style={{ marginBottom: 0 }}>⚠ {error}</div>}
-
-          {/* Buy / Sell toggle */}
-          <div className="co-field">
-            <div className="co-label">Order Type</div>
-            <div className="co-type-toggle">
-              <button
-                className={`co-type-btn ${form.orderType === 'BUY' ? 'active-buy' : ''}`}
-                onClick={() => setForm((f) => ({ ...f, orderType: 'BUY' }))}
-              >↑ Buy</button>
-              <button
-                className={`co-type-btn ${form.orderType === 'SELL' ? 'active-sell' : ''}`}
-                onClick={() => setForm((f) => ({ ...f, orderType: 'SELL' }))}
-              >↓ Sell</button>
-            </div>
-          </div>
-
-          {/* Market selector */}
-          <div className="co-field">
-            <label className="co-label">Market</label>
-            <div className="co-select-wrap">
-              <select
-                className="co-input"
-                value={form.marketId}
-                onChange={(e) => {
-                  const m = markets.find((x) => String(x.id) === e.target.value)
-                  setForm((f) => ({
-                    ...f,
-                    marketId: e.target.value,
-                    pricePerUnit: m ? m.currentPrice.toFixed(2) : f.pricePerUnit,
-                  }))
-                }}
-              >
-                {markets.length === 0 && <option value="">No markets available</option>}
-                {markets.map((m) => (
-                  <option key={m.id} value={m.id}>{m.symbol} — ${m.currentPrice.toFixed(2)}</option>
-                ))}
-              </select>
-              <span className="co-select-arrow">▾</span>
-            </div>
-          </div>
-
-          {/* Quantity + Price row */}
-          <div className="co-row2">
-            <div className="co-field">
-              <label className="co-label">Quantity</label>
-              <input
-                className="co-input"
-                type="number"
-                min="1"
-                placeholder="0"
-                value={form.quantity}
-                onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
-              />
-            </div>
-            <div className="co-field">
-              <label className="co-label">Price / Unit</label>
-              <div className="co-input-wrap">
-                <span className="co-input-prefix">$</span>
-                <input
-                  className="co-input has-prefix"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={form.pricePerUnit}
-                  onChange={(e) => setForm((f) => ({ ...f, pricePerUnit: e.target.value }))}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Order summary */}
-          <div className="co-summary">
-            <div className="co-srow">
-              <span className="co-skey">Market</span>
-              <span className="co-sval">{selectedMarket?.symbol ?? '—'}</span>
-            </div>
-            <div className="co-srow">
-              <span className="co-skey">Quantity</span>
-              <span className="co-sval">{form.quantity || '—'}</span>
-            </div>
-            <div className="co-srow">
-              <span className="co-skey">Price / Unit</span>
-              <span className="co-sval">{form.pricePerUnit ? `$${parseFloat(form.pricePerUnit).toFixed(2)}` : '—'}</span>
-            </div>
-            <div className="co-divider" />
-            <div className="co-srow">
-              <span className="co-skey">Estimated Total</span>
-              <span className="co-sval total">{totalAmount > 0 ? `$${totalAmount.toFixed(2)}` : '—'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="co-footer">
-          <button className="co-cancel-btn" onClick={onClose}>Cancel</button>
-          <button
-            className={`co-submit-btn ${form.orderType}`}
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-          >
-            {submitting
-              ? 'Placing…'
-              : form.orderType === 'BUY'
-                ? '↑ Place Buy Order'
-                : '↓ Place Sell Order'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ─── Table ────────────────────────────────────────────────────────────────────
 const COLS = [
   { key: 'id',     label: 'Order ID',     s: true },
+  { key: 'user',   label: 'User',         s: true },
   { key: 'market', label: 'Market',       s: true },
   { key: 'type',   label: 'Type',         s: true },
   { key: 'qty',    label: 'Quantity',     s: true },
@@ -712,6 +773,21 @@ function OrdersTable({ orders, sortKey, sortDir, onSort, onRowClick }) {
           return (
             <tr key={order.id} style={{ animationDelay: `${i * 0.03}s` }} onClick={() => onRowClick(order.id)} title="Click for details">
               <td className="op-oid">#{order.id}</td>
+              <td>
+                {order.user ? (
+                  <div className="op-ucell">
+                    <div className="op-uavatar">
+                      {(order.user.fullName || '?').charAt(0)}
+                    </div>
+                    <div>
+                      <div className="op-uname">{order.user.fullName || `User #${order.user.id}`}</div>
+                      <div className="op-uemail">{order.user.email || '—'}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <span style={{ color: '#94a3b8', fontSize: 12 }}>—</span>
+                )}
+              </td>
               <td>
                 <div className="op-mcell">
                   <span className="op-mchip" style={{ background: color.bg, color: color.text, borderColor: color.border }}>
@@ -762,7 +838,7 @@ function Pagination({ total, page, perPage, onChange }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const PER_PAGE = 8
 
-export default function OrdersPage() {
+export default function UsersOrdersPage() {
   useStyles()
 
   const { user } = useAppContext()
@@ -783,29 +859,13 @@ export default function OrdersPage() {
   const fetchOrders = useCallback(() => {
     if (!user?.id) return 
     setLoading(true); setError(null)
-    orderAPI.getOrdersByUser(user.id)
-      .then((res) => setOrders(res.data || []))
+    orderAPI.getAllUsersOrders().then((res) => setOrders(res.data || []))
       .catch(() => setError('Failed to load orders. Please try again.'))
       .finally(() => setLoading(false))
   }, [user?.id])
 
   // Fetch orders on mount
   useEffect(() => { fetchOrders() }, [fetchOrders])
-
-    const fetchMarkets = async () => {
-        try {
-        // setLoading(true);
-        const response = await marketAPI.getMarkets();
-        setMarkets(response.data);
-        } catch (err) {
-        setError(err.message);
-        }
-        // } finally {
-        // // setLoading(false);
-        // }
-    };
- 
-   useEffect(() => { fetchMarkets(); }, [fetchMarkets]);
 
   const handleSort = useCallback((key) => {
     if (key === sortKey) setSortDir((d) => d * -1)
@@ -832,13 +892,16 @@ export default function OrdersPage() {
       .filter((o) => {
         const typeOk   = typeFilter === 'ALL' || o.orderType === typeFilter
         const statusOk = statusFilter === 'ALL' || o.status === statusFilter
+        const userName = o.user ? `${o.user.fullName || ''} ${o.user.email || ''}`.toLowerCase() : ''
         const searchOk = !q || o.market.symbol.toLowerCase().includes(q)
           || o.market.name.toLowerCase().includes(q) || String(o.id).includes(q)
+          || userName.includes(q)
         return typeOk && statusOk && searchOk
       })
       .sort((a, b) => {
         switch (sortKey) {
           case 'id':     return sortDir * (a.id - b.id)
+          case 'user':   { const uA = a.user?.fullName || ''; const uB = b.user?.fullName || ''; return sortDir * uA.localeCompare(uB) }
           case 'market': return sortDir * a.market.symbol.localeCompare(b.market.symbol)
           case 'type':   return sortDir * a.orderType.localeCompare(b.orderType)
           case 'qty':    return sortDir * (a.quantity - b.quantity)
@@ -864,12 +927,9 @@ export default function OrdersPage() {
       {/* Heading */}
       <div className="op-heading">
         <div className="op-heading-left">
-          <h1 className="op-title">My <span className="op-title-accent">Orders</span></h1>
+          <h1 className="op-title">User's<span className="op-title-accent">Orders</span></h1>
           <p className="op-subtitle">Click any row to view order details</p>
-        </div>
-        <button className="op-create-btn" onClick={() => setShowCreate(true)}>
-          <span className="op-create-btn-icon">＋</span> New Order
-        </button>
+        </div>      
       </div>
 
       {error && <div className="op-err">⚠ {error}</div>}
@@ -907,7 +967,7 @@ export default function OrdersPage() {
           <input
             className="op-si-input"
             type="text"
-            placeholder="Search by market or order ID…"
+            placeholder="Search by market, user, or order ID…"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           />
@@ -938,17 +998,7 @@ export default function OrdersPage() {
       {/* Detail modal */}
       {modalId !== null && (
         <OrderModal orderId={modalId} onClose={() => setModalId(null)} />
-      )}
-
-      {/* Create Order modal */}
-      {showCreate && (
-        <CreateOrderModal
-          markets={markets}
-          user={user}
-          onClose={() => setShowCreate(false)}
-          onSuccess={fetchOrders}   // re-fetches the list after a successful order
-        />
-      )}
+      )}    
     </div>
   )
 }

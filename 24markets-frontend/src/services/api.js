@@ -9,32 +9,59 @@ const api = axios.create({
   },
 });
 
-// 🔹 Add JWT token automatically
+// Attach JWT Automatically
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
-    if (token) {
+    // console.log("Interceptor token:", localStorage.getItem("token"));
+    if (token && token !== "undefined") {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// 🔹 Optional: auto logout if token expired
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 403) {
-//       console.log("Unauthorized - logging out");
-//       localStorage.removeItem("token");
-//       window.location.href = "/login";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+// Auto Logout if Unauthorized
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    // console.log(status);
+    // Prevent loop if already on login page
+    const isLoginPage = window.location.pathname === "/login";
+
+    // if (!isLoginPage) {  //(status === 401 || status === 403) && 
+    //   localStorage.removeItem("token");
+    //   localStorage.removeItem("role");
+
+    //   // Use replace instead of href (no reload loop)
+    //   window.location.replace("/login");
+    // }
+
+    return Promise.reject(error);
+  }
+);
+
+// Helper: Decode Role From JWT
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+};
+
+export const getUserRole = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  const decoded = parseJwt(token);
+  return decoded?.role || null; // ROLE_ADMIN / ROLE_USER
+};
+
+export const isAdmin = () => getUserRole() === "ROLE_ADMIN";
+export const isUser = () => getUserRole() === "ROLE_USER";
 
 // ================= AUTH =================
 export const authAPI = {
@@ -43,9 +70,14 @@ export const authAPI = {
   login: async (credentials) => {
     const res = await api.post("/auth/login", credentials);
 
-    // Save token
     if (res.data.token) {
       localStorage.setItem("token", res.data.token);
+
+      // Extract role from token and store (optional)
+      const decoded = parseJwt(res.data.token);
+      if (decoded?.role) {
+        localStorage.setItem("role", decoded.role);
+      }
     }
 
     return res;
@@ -53,98 +85,86 @@ export const authAPI = {
 
   logout: () => {
     localStorage.removeItem("token");
-    return api.post("/auth/logout");
+    localStorage.removeItem("role");
+    return Promise.resolve();
   },
 
   getCurrentUser: () => api.get("/auth/me"),
-  refreshToken: () => api.post("/auth/refresh"),
 };
 
 // ================= USERS =================
 export const userAPI = {
   getUser: (id) => api.get(`/users/${id}`),
-  getUserByEmail: (email) => api.get(`/users/email/${email}`),
-  getAllUsers: () => api.get("/users"),
+
+  // ADMIN ONLY
+  getAllUsers: () => {
+    if (!isAdmin()) {
+      throw new Error("Access denied: Admin only");
+    }
+    return api.get("/users/all");
+  },
+
   updateUser: (id, userData) => api.put(`/users/${id}`, userData),
-  updateWallet: (id, amount) =>
-    api.put(`/users/${id}/wallet?amount=${amount}`),
-  deleteUser: (id) => api.delete(`/users/${id}`),
+
+  deleteUser: (id) => {
+    if (!isAdmin()) {
+      throw new Error("Access denied: Admin only");
+    }
+    return api.delete(`/users/${id}`);
+  },
 };
 
 // ================= MARKETS =================
 export const marketAPI = {
   getMarkets: () => api.get("/markets/getAllMarkets"),
-  getMarket: (id) => api.get(`/markets/${id}`),
-  getMarketBySymbol: (symbol) => api.get(`/markets/symbol/${symbol}`),
-  createMarket: (marketData) => api.post("/markets", marketData),
-  updateMarket: (id, marketData) =>
-    api.put(`/markets/${id}`, marketData),
+
+  createMarket: (marketData) => {
+    if (!isAdmin()) {
+      throw new Error("Admin only");
+    }
+    return api.post("/markets", marketData);
+  },  
+
+  updateMarket: (id, marketData) => {
+    if (!isAdmin()) {
+      throw new Error("Admin only");
+    }
+    return api.put(`/markets/${id}`, marketData);
+  },
 };
 
 // ================= ORDERS =================
 export const orderAPI = {
-  createOrder: (orderData) => api.post(`/orders/createOrder`, orderData),
+  createOrder: (orderData) =>
+    api.post(`/orders/createOrder`, orderData),
+
   getOrder: (id) => api.get(`/orders/${id}`),
-  getOrdersByUser: (userId) => api.get(`/orders/user/${userId}`),
-  getOrdersByMarket: (marketId) =>
-    api.get(`/orders/market/${marketId}`),
-  updateOrderStatus: (id, status) =>
-    api.put(`/orders/${id}/status?status=${status}`),
-  deleteOrder: (id) => api.delete(`/orders/${id}`),
+
+  getOrdersByUser: (userId) =>
+    api.get(`/orders/user/${userId}`),
+
+  getAllUsersOrders: () => {
+    if (!isAdmin()) {
+      throw new Error("Admin only");
+    }
+    return api.get('/orders/all')  
+  },
+  getRecentsOrders: () => {    
+    return api.get('/orders/getRecentsOrders')  
+  },
+  updateOrderStatus: (id, newstatus) => {
+     if (!isAdmin()) {
+      throw new Error("Admin only");
+    }
+    console.log(newstatus)
+    return  api.put(`/orders/status/${id}?status=${newstatus}`)
+  },
+  deleteOrder: (id) => {
+    if (!isAdmin()) {
+      throw new Error("Admin only");
+    }
+    return api.delete(`/orders/${id}`);
+  },
 };
 
 export default api;
-
-
-
-// import axios from 'axios';
-
-// const API_BASE_URL = 'http://localhost:8080/api';
-
-// const api = axios.create({
-//   baseURL: API_BASE_URL,
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-//   withCredentials: true, // Important: Send cookies with requests
-// });
-
-// // Auth API calls
-// export const authAPI = {
-//   register: (userData) => api.post('/auth/register', userData),
-//   login: (credentials) => api.post('/auth/login', credentials),
-//   logout: () => api.post('/auth/logout'),
-//   getCurrentUser: () => api.get('/auth/me'),
-//   refreshToken: () => api.post('/auth/refresh'),
-// };
-
-// // User API calls
-// export const userAPI = {
-//   getUser: (id) => api.get(`/users/${id}`),
-//   getUserByEmail: (email) => api.get(`/users/email/${email}`),
-//   getAllUsers: () => api.get('/users'),
-//   updateUser: (id, userData) => api.put(`/users/${id}`, userData),
-//   updateWallet: (id, amount) => api.put(`/users/${id}/wallet?amount=${amount}`),
-//   deleteUser: (id) => api.delete(`/users/${id}`),
-// };
-
-// // Market API calls
-// export const marketAPI = {
-//   getMarkets: () => api.get('/markets/getAllMarkets'),
-//   getMarket: (id) => api.get(`/markets/${id}`),
-//   getMarketBySymbol: (symbol) => api.get(`/markets/symbol/${symbol}`),
-//   createMarket: (marketData) => api.post('/markets', marketData),
-//   updateMarket: (id, marketData) => api.put(`/markets/${id}`, marketData),
-// };
-
-// // Order API calls
-// export const orderAPI = {
-//   createOrder: (orderData) => api.post('/orders', orderData),
-//   getOrder: (id) => api.get(`/orders/${id}`),
-//   getOrdersByUser: (userId) => api.get(`/orders/user/${userId}`),
-//   getOrdersByMarket: (marketId) => api.get(`/orders/market/${marketId}`),
-//   updateOrderStatus: (id, status) => api.put(`/orders/${id}/status?status=${status}`),
-//   deleteOrder: (id) => api.delete(`/orders/${id}`),
-// };
-
-// export default api;

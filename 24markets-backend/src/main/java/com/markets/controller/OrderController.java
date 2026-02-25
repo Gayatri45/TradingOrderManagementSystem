@@ -45,13 +45,24 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<Order>> getOrdersByUsers() {        
+        return ResponseEntity.ok(orderService.getOrdersByUsers());
+    }
+
+    @GetMapping("/getRecentsOrders")
+    public ResponseEntity<List<Order>> getRecentOrders() {        
+        return ResponseEntity.ok(orderService.getRecentOrders());
+    }
+
     @GetMapping("/market/{marketId}")
     public ResponseEntity<List<Order>> getOrdersByMarketId(@PathVariable Long marketId) {
         return ResponseEntity.ok(orderService.getOrdersByMarketId(marketId));
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/status/{id}")
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+        System.out.println(status);
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
 
@@ -66,55 +77,3 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }
-
-// package com.markets.controller;
-
-// import com.markets.entity.Order;
-// import com.markets.service.OrderService;
-// import lombok.RequiredArgsConstructor;
-// import org.springframework.http.HttpStatus;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.*;
-// import java.util.List;
-
-// @RestController
-// @RequestMapping("/orders")
-// @RequiredArgsConstructor
-// @CrossOrigin(origins = "http://localhost:5173")
-// public class OrderController {
-
-//     private final OrderService orderService;
-
-//     @PostMapping
-//     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-//         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(order));
-//     }
-
-//     @GetMapping("/{id}")
-//     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-//         return orderService.getOrderById(id)
-//                 .map(ResponseEntity::ok)
-//                 .orElseGet(() -> ResponseEntity.notFound().build());
-//     }
-
-//     @GetMapping("/user/{userId}")
-//     public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable Long userId) {
-//         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
-//     }
-
-//     @GetMapping("/market/{marketId}")
-//     public ResponseEntity<List<Order>> getOrdersByMarketId(@PathVariable Long marketId) {
-//         return ResponseEntity.ok(orderService.getOrdersByMarketId(marketId));
-//     }
-
-//     @PutMapping("/{id}/status")
-//     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
-//         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
-//     }
-
-//     @DeleteMapping("/{id}")
-//     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-//         orderService.deleteOrder(id);
-//         return ResponseEntity.noContent().build();
-//     }
-// }

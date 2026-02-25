@@ -1,5 +1,7 @@
 package com.markets.dto;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +15,7 @@ public class AuthResponse {
     private String token;
     private Long userId;
     private String fullName;
-    private Double walletBalance;
+    private BigDecimal walletBalance;
     private Long expiresIn; // milliseconds
+    private Boolean isAdmin;
 }

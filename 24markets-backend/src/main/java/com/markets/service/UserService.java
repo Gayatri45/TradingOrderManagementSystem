@@ -4,6 +4,8 @@ import com.markets.entity.User;
 import com.markets.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +30,12 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    // public List<User> getAllUsers() {
+    //     return userRepository.findAll();
+    // }
+
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findByRole("ROLE_USER");
     }
 
     public User updateUser(Long id, User userDetails) {
@@ -45,9 +51,23 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public User updateWalletBalance(Long userId, Double amount) {
+    // public User updateWalletBalance(Long userId, Double amount) {
+    //     return userRepository.findById(userId).map(user -> {
+    //         user.setWalletBalance(user.getWalletBalance() + amount);
+    //         user.setUpdatedAt(LocalDateTime.now());
+    //         return userRepository.save(user);
+    //     }).orElseThrow(() -> new RuntimeException("User not found"));
+    // }
+
+    public User updateWalletBalance(Long userId, BigDecimal amount) {
+
         return userRepository.findById(userId).map(user -> {
-            user.setWalletBalance(user.getWalletBalance() + amount);
+            if (user.getWalletBalance() == null) {
+                user.setWalletBalance(BigDecimal.ZERO);
+            }
+            user.setWalletBalance(
+                    user.getWalletBalance().add(amount)
+            );
             user.setUpdatedAt(LocalDateTime.now());
             return userRepository.save(user);
         }).orElseThrow(() -> new RuntimeException("User not found"));

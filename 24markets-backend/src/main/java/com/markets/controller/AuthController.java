@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @RestController
@@ -35,7 +36,7 @@ public class AuthController {
             // Check if user already exists
             if (userService.getUserByEmail(request.getEmail()).isPresent()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new AuthResponse("User already exists", null, null, null, null, null, null));
+                        .body(new AuthResponse("User already exists", null, null, null, null, null, null, false));
             }
 
             // Create new user with hashed password
@@ -44,15 +45,21 @@ public class AuthController {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             // user.setFullName(request.getEmail().split("@")[0]); // Default name
             user.setFullName(request.getFirstName()+" "+request.getLastName()); // Default name
-            user.setWalletBalance(100000.0);
+            // user.setWalletBalance(100000.0);
+            user.setWalletBalance(new BigDecimal("1000.0"));
             user.setStatus("ACTIVE");
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());
-
+            user.setIsAdmin(request.getIsAdmin());
+            if(request.getIsAdmin()){
+                user.setRole("ROLE_ADMIN");
+            }else{
+                user.setRole("ROLE_USER");
+            }
             User savedUser = userService.createUser(user);
 
             // Generate JWT token
-            String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getId());
+            String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getId(), savedUser.getRole());
             long expiresIn = jwtUtil.getExpirationTime(token);
 
             // Set HttpOnly cookie
@@ -65,14 +72,15 @@ public class AuthController {
                     savedUser.getId(),
                     savedUser.getFullName(),
                     savedUser.getWalletBalance(),
-                    expiresIn
+                    expiresIn,
+                    savedUser.getIsAdmin()
             );
 
             return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AuthResponse("Registration failed: " + e.getMessage(), null, null, null, null, null, null));
+                    .body(new AuthResponse("Registration failed: " + e.getMessage(), null, null, null, null, null, null, false));
         }
     }
 
@@ -87,7 +95,7 @@ public class AuthController {
             
             if (user.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new AuthResponse("Invalid credentials", null, null, null, null, null, null));
+                        .body(new AuthResponse("Invalid credentials", null, null, null, null, null, null, false));
             }
 
             User foundUser = user.get();
@@ -95,11 +103,11 @@ public class AuthController {
             // Verify password
             if (!passwordEncoder.matches(request.getPassword(), foundUser.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new AuthResponse("Invalid credentials", null, null, null, null, null, null));
+                        .body(new AuthResponse("Invalid credentials", null, null, null, null, null, null, false));
             }
 
             // Generate JWT token
-            String token = jwtUtil.generateToken(foundUser.getEmail(), foundUser.getId());
+            String token = jwtUtil.generateToken(foundUser.getEmail(), foundUser.getId(), foundUser.getRole());
             long expiresIn = jwtUtil.getExpirationTime(token);
 
             // Set HttpOnly cookie
@@ -112,14 +120,15 @@ public class AuthController {
                     foundUser.getId(),
                     foundUser.getFullName(),
                     foundUser.getWalletBalance(),
-                    expiresIn
+                    expiresIn,
+                    foundUser.getIsAdmin()
             );
 
             return ResponseEntity.ok(authResponse);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AuthResponse("Login failed: " + e.getMessage(), null, null, null, null, null, null));
+                    .body(new AuthResponse("Login failed: " + e.getMessage(), null, null, null, null, null, null, false));
         }
     }
 
@@ -136,26 +145,19 @@ public class AuthController {
         cookie.setMaxAge(0);
         response.addCookie(cookie);
 
-        return ResponseEntity.ok(new AuthResponse("Logout successful", null, null, null, null, null, null));
+        return ResponseEntity.ok(new AuthResponse("Logout successful", null, null, null, null, null, null, false));
     }
 
     /**
      * Get current user info
-     */
-    // @GetMapping("/me")
-    // public ResponseEntity<User> getCurrentUser(@RequestAttribute("email") String email) {
-    //     var user = userService.getUserByEmail(email);
-    //     return user.map(ResponseEntity::ok)
-    //             .orElseGet(() -> ResponseEntity.notFound().build());
-    // }
+     */    
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(
             @RequestAttribute(value = "email", required = false) String email
     ) {
         if (email == null) {
-            return ResponseEntity.status(401).body("Not authenticated");
+            return ResponseEntity.status(400).body("Not authenticated");
         }
-
         return userService.getUserByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -167,10 +169,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshToken(@RequestAttribute("email") String email,
                                                      @RequestAttribute("userId") Long userId,
+                                                     @RequestAttribute("role") String role,
                                                      HttpServletResponse response) {
         try {
             // Generate new JWT token
-            String token = jwtUtil.generateToken(email, userId);
+            String token = jwtUtil.generateToken(email, userId, role);
             long expiresIn = jwtUtil.getExpirationTime(token);
 
             // Set HttpOnly cookie
@@ -183,14 +186,15 @@ public class AuthController {
                     userId,
                     null,
                     null,
-                    expiresIn
+                    expiresIn,
+                    false
             );
 
             return ResponseEntity.ok(authResponse);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AuthResponse("Token refresh failed: " + e.getMessage(), null, null, null, null, null, null));
+                    .body(new AuthResponse("Token refresh failed: " + e.getMessage(), null, null, null, null, null, null, false));
         }
     }
 

@@ -1,159 +1,3 @@
-// import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { useAppContext } from '../hooks/useAppContext';
-// import { userAPI } from '../services/api';
-// import '../styles/Auth.css';
-
-// export const Login = () => {
-//   const [formData, setFormData] = useState({ email: '', password: '' });
-//   const [error, setError] = useState('');
-//   const { setUser, setLoading } = useAppContext();
-//   const navigate = useNavigate();
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({ ...prev, [name]: value }));
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-
-//     try {
-//       const response = await userAPI.getUserByEmail(formData.email);
-//       if (response.data.password === formData.password) {
-//         setUser(response.data);
-//         navigate('/dashboard');
-//       } else {
-//         setError('Invalid credentials');
-//       }
-//     } catch (err) {
-//       setError('User not found');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="auth-container">
-//       <form className="auth-form" onSubmit={handleSubmit}>
-//         <h2>Login</h2>
-//         {error && <div className="error-message">{error}</div>}
-
-//         <div className="form-group">
-//           <label>Email</label>
-//           <input
-//             type="email"
-//             name="email"
-//             value={formData.email}
-//             onChange={handleChange}
-//             required
-//           />
-//         </div>
-
-//         <div className="form-group">
-//           <label>Password</label>
-//           <input
-//             type="password"
-//             name="password"
-//             value={formData.password}
-//             onChange={handleChange}
-//             required
-//           />
-//         </div>
-
-//         <button type="submit" className="btn-submit">
-//           Login
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-
-// import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { useAppContext } from '../hooks/useAppContext';
-// import { authAPI } from '../services/api';
-// import '../styles/Auth.css';
-
-// export const Login = () => {
-//   const [formData, setFormData] = useState({ email: '', password: '' });
-//   const [error, setError] = useState('');
-//   const [loading, setLoading] = useState(false);
-//   const { setUser, setLoading: setAppLoading } = useAppContext();
-//   const navigate = useNavigate();
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({ ...prev, [name]: value }));
-//     setError('');
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     setAppLoading(true);
-
-//     try {
-//       const response = await authAPI.login(formData);
-      
-//       if (response.data) {
-//         setUser({
-//           id: response.data.userId,
-//           email: response.data.email,
-//           fullName: response.data.fullName,
-//           walletBalance: response.data.walletBalance,
-//         });
-//         navigate('/dashboard');
-//       }
-//     } catch (err) {
-//       setError(err.response?.data?.message || 'Invalid email or password');
-//     } finally {
-//       setLoading(false);
-//       setAppLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="auth-container">
-//       <form className="auth-form" onSubmit={handleSubmit}>
-//         <h2>Login</h2>
-//         {error && <div className="error-message">{error}</div>}
-
-//         <div className="form-group">
-//           <label>Email</label>
-//           <input
-//             type="email"
-//             name="email"
-//             value={formData.email}
-//             onChange={handleChange}
-//             required
-//             disabled={loading}
-//           />
-//         </div>
-
-//         <div className="form-group">
-//           <label>Password</label>
-//           <input
-//             type="password"
-//             name="password"
-//             value={formData.password}
-//             onChange={handleChange}
-//             required
-//             disabled={loading}
-//           />
-//         </div>
-
-//         <button type="submit" className="btn-submit" disabled={loading}>
-//           {loading ? 'Logging in...' : 'Login'}
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../hooks/useAppContext';
@@ -553,27 +397,39 @@ export const Login = () => {
     e.preventDefault();
     setLoading(true);
     setAppLoading(true);
+
     try {
       const response = await authAPI.login(formData);
+      const token = response.data?.token;
       console.log(response.data)
-      if (response.data) {
-        localStorage.setItem("token", response.data.token);
-        setUser({
-          id: response.data.userId,
-          email: response.data.email,
-          fullName: response.data.fullName,
-          walletBalance: response.data.walletBalance,
-        });
-        navigate('/dashboard');
-      }
+      if (!token) throw new Error("Login failed: No token returned");
+
+      // Save user info in AppContext
+      const role = response.data.isAdmin ? "ROLE_ADMIN" : "ROLE_USER";
+      // console.log(token)
+      // localStorage.setItem("token", token);
+      // localStorage.setItem("role", role);
+
+      setUser({
+        id: response.data.userId,
+        email: response.data.email,
+        fullName: response.data.fullName,
+        walletBalance: response.data.walletBalance,
+        token,
+        role,
+      });
+      // if(!response.data.isAdmin){
+        navigate("/dashboard");
+      // }else{
+        // navigate("/adminDashboard");
+      // }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      setError(err.response?.data?.message || err.message || "Login failed");
     } finally {
       setLoading(false);
       setAppLoading(false);
     }
   };
-
   return (
     <>
       <style>{styles}</style>

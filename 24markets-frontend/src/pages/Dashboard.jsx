@@ -526,7 +526,8 @@ export const Dashboard = () => {
       const fetchOrders = async () => {
         try {
           setLoading(true);
-          const response = await orderAPI.getOrdersByUser(user.id);
+          // console.log(localStorage.getItem("token"))                 
+          const response = await orderAPI.getRecentsOrders();
           setOrders(response.data);
         } catch (err) {
           setError(err.message);
@@ -580,15 +581,15 @@ export const Dashboard = () => {
             <div className="db-logo-mark">T</div>
             <div className="db-logo-text">Trade<span>Hub</span></div>
           </div>
-          <nav className="db-nav">
-            <div className="db-nav-label">Main</div>
-
+          <nav className="db-nav">          
+            <div className="db-nav-label" style={{ marginTop: 20 }}>Account</div>
             {[
               { icon: <Icon.Dashboard />, label: "Overview", link: "/dashboard" },
-              { icon: <Icon.Orders />, label: "Orders", badge: orders?.length || 0, link: "/orders" },
+              // { icon: <Icon.Orders />, label: "Orders", badge: orders?.length || 0, link: "/orders" },
+              ...(user?.role == "ROLE_ADMIN" ? [] : [{ icon: <Icon.Orders />, label: "Orders", badge: orders?.length || 0, link: "/orders" }]),
                { icon: <Icon.Orders />, label: "Markets", link: "/markets" },
-              { icon: <Icon.Chart />, label: "Analytics", link: "/analytics" },
-              { icon: <Icon.Wallet />, label: "Wallet", link: "/wallet" },
+              ...(user?.role == "ROLE_ADMIN" ? [{ icon: <Icon.Orders />, label: "Users", link: "/users" }] : []),
+              ...(user?.role == "ROLE_ADMIN" ? [{ icon: <Icon.Orders />, label: "Users Orders", link: "/usersOrders" }] : []),
             ].map((item) => (
               <NavLink
                 key={item.label}
@@ -606,14 +607,6 @@ export const Dashboard = () => {
               </NavLink>
             ))}
 
-            <div className="db-nav-label" style={{ marginTop: 20 }}>Account</div>
-
-            <NavLink to="/settings" className="db-nav-item">
-              <span className="db-nav-icon">
-                <Icon.Settings />
-              </span>
-              Settings
-            </NavLink>
           </nav>
           <div className="db-sb-footer">
             <div className="db-sb-user">
@@ -621,7 +614,7 @@ export const Dashboard = () => {
 
               <div style={{ overflow: 'hidden', flex: 1 }}>
                 <div className="db-sb-name">{user?.fullName}</div>
-                <div className="db-sb-role">Member</div>
+                <div className="db-sb-role">{user?.role == "ROLE_ADMIN" ? 'Admin' : 'Member'}</div>
               </div>
 
               <div
@@ -671,7 +664,7 @@ export const Dashboard = () => {
             {/* Page header */}
             <div className="db-ph">
               <div>
-                <div className="db-ph-title">Good morning, {firstName} 👋</div>
+                <div className="db-ph-title">Good morning, {firstName} {user?.role == "ROLE_ADMIN" && <span style={{color: 'var(--accent)', fontSize: '20px', fontWeight: '600'}}> (ADMIN)</span>} 👋</div>
                 <div className="db-ph-sub">Here's what's happening with your portfolio today.</div>
               </div>
               <div className="db-live-badge">
@@ -847,3 +840,5 @@ export const Dashboard = () => {
     </>
   );
 };
+
+export default Dashboard;

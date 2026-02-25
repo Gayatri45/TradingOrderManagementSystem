@@ -1,62 +1,3 @@
-// package com.markets.controller;
-
-// import com.markets.entity.User;
-// import com.markets.service.UserService;
-// import lombok.RequiredArgsConstructor;
-// import org.springframework.http.HttpStatus;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.*;
-// import java.util.List;
-
-// @RestController
-// @RequestMapping("/users")
-// @RequiredArgsConstructor
-// @CrossOrigin(origins = "http://localhost:5173") // Vite default port
-// public class UserController {
-
-//     private final UserService userService;
-
-//     @PostMapping
-//     public ResponseEntity<User> createUser(@RequestBody User user) {
-//         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
-//     }
-
-//     @GetMapping("/{id}")
-//     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-//         return userService.getUserById(id)
-//                 .map(ResponseEntity::ok)
-//                 .orElseGet(() -> ResponseEntity.notFound().build());
-//     }
-
-//     @GetMapping
-//     public ResponseEntity<List<User>> getAllUsers() {
-//         return ResponseEntity.ok(userService.getAllUsers());
-//     }
-
-//     @GetMapping("/email/{email}")
-//     public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-//         return userService.getUserByEmail(email)
-//                 .map(ResponseEntity::ok)
-//                 .orElseGet(() -> ResponseEntity.notFound().build());
-//     }
-
-//     @PutMapping("/{id}")
-//     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-//         return ResponseEntity.ok(userService.updateUser(id, user));
-//     }
-
-//     @PutMapping("/{id}/wallet")
-//     public ResponseEntity<User> updateWallet(@PathVariable Long id, @RequestParam Double amount) {
-//         return ResponseEntity.ok(userService.updateWalletBalance(id, amount));
-//     }
-
-//     @DeleteMapping("/{id}")
-//     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-//         userService.deleteUser(id);
-//         return ResponseEntity.noContent().build();
-//     }
-// }
-
 package com.markets.controller;
 
 import com.markets.entity.User;
@@ -65,10 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class UserController {
@@ -87,7 +30,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
@@ -110,7 +53,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/wallet")
-    public ResponseEntity<User> updateWallet(@PathVariable Long id, @RequestParam Double amount,
+    public ResponseEntity<User> updateWallet(@PathVariable Long id, @RequestParam BigDecimal amount,
                                             @RequestAttribute("userId") Long authenticatedUserId) {
         if (!id.equals(authenticatedUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
